@@ -1,0 +1,57 @@
+{% extends 'base.html' %} {% block content %}
+<form method="POST" action="{{ url_for('handle_search') }}" class="row">
+  <div class="col-md-8 mb-3">
+    <input type="text" class="form-control" name="query" id="query" placeholder="Enter your search query"
+      value="{{ query }}" autofocus />
+  </div>
+  <div class="col-md-4 mb-3">
+    <input type="number" class="form-control" name="topk" id="topk"
+      placeholder="Enter the top k results (defaults to 5)" min="1" value="{{ topk }}" />
+  </div>
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary">Search</button>
+  </div>
+</form>
+{% if results %}
+<div class="row mb-3">
+  <div class="col-2 mt-2">
+    <p><a href="javascript:history.back(1)">← Back</a></p>
+  </div>
+  <div class="col-10">
+    <div class="row mb-3">
+      <div class="col-sm-auto my-auto">
+        Showing results {{ from_ + 1 }}-{{ from_ + results|length }} out of {{
+        total }}.
+      </div>
+      {% if from_ > 0 %}
+      <div class="col-sm-auto my-auto">
+        <a href="javascript:history.back(1)" class="btn btn-primary">← Previous page</a>
+      </div>
+      {% endif %} {% if from_ + results|length < total %} <div class="col-sm-auto my-auto">
+        <form method="POST">
+          <input type="hidden" name="query" value="{{ query }}" />
+          <input type="hidden" name="topk" min="1" value="{{ topk }}" />
+          <input type="hidden" name="from_" value="{{ from_ + results|length }}" />
+          <button type="submit" class="btn btn-primary">Next page →</button>
+        </form>
+    </div>
+    {% endif %}
+    <div class="col"></div>
+  </div>
+  {% for result in results %}
+  <p>
+    {{ from_ + loop.index }}.
+    <b><a href="{{ url_for('get_document', id=result._id) }}">{{ result._source.title }}</a></b>
+    <br />
+    {{ result._source.content }}
+    <br />
+    <medium>
+      {% if result._score %}<i>Score: {{ result._score }}</i>{% endif %}
+    </medium>
+  </p>
+  {% endfor %}
+</div>
+</div>
+{% elif request.method == 'POST' %}
+<div class="col-sm-auto my-auto">No results found.</div>
+{% endif %} {% endblock %}

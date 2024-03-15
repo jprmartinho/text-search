@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Exit immediately if any command returns a non-zero status
+set -o errexit
+
+# Causes a pipeline to return a non-zero status if any command in the pipeline fails
+set -o pipefail
+
+# Treat unset variables as an error when performing parameter expansion
+set -o nounset
+
+# Start a Python block
+python << END
+import sys
+import time
+from elasticsearch import Elasticsearch, ConnectionError
+
+suggest_unrecoverable_after = 30
+es = Elasticsearch(['http://es:9200'])
+
+start = time.time()
+while True:
+  try:
+    es.info()
+    break
+  except ConnectionError as error:
+    sys.stderr.write("Waiting for Elasticsearch to become available...\n")
+    if time.time() - start > suggest_unrecoverable_after:
+      sys.stderr.write(" This is taking longer than expected. The following exception may be indicative of an unrecoverable error: '{}'\n".format(error))
+  time.sleep(1)
+END
+
+>&2 echo "Elasticsearch is available"
+
+flask reindex
+
+# Run Flask on 127.0.0.1:5001
+exec flask run -h 0.0.0.0 -p 5001

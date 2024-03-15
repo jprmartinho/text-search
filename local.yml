@@ -1,0 +1,34 @@
+version: "3.9"
+
+name: vidoso-hiring-challenge
+
+services:
+  es:
+    build:
+      context: .
+      dockerfile: ./docker/local/es/Dockerfile
+    ports:
+      - "127.0.0.1:9200:9200"
+    networks:
+      - text-search
+
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/local/flask/Dockerfile
+    volumes:
+      - .:/app:z
+      - templates:/app/templates
+    ports:
+      - "127.0.0.1:5001:5001"
+    depends_on:
+      - es
+    networks:
+      - text-search
+
+networks:
+  text-search:
+    driver: bridge
+
+volumes:
+  templates:
