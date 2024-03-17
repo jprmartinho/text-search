@@ -29,14 +29,10 @@ This challenge focuses on creating a system that can take a set of text, vectori
     ```shell
     git clone https://github.com/jprmartinho/text-search.git
 
-    cd text_search
-
-    git checkout main
+    cd text-search
 
     # Trigger docker compose build command, and tail the logs
     make build; make tail-logs-api
-
-    # `CTRL+c` to exit tail-logs-api
 
     # Go to http://127.0.0.1:5001/
     ```
