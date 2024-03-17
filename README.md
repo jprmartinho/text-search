@@ -29,6 +29,8 @@ This challenge focuses on creating a system that can take a set of text, vectori
     ```shell
     git clone https://github.com/jprmartinho/text-search.git
 
+    cd text_search
+
     git checkout main
 
     # Trigger docker compose build command, and tail the logs
