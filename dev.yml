@@ -6,7 +6,7 @@ services:
   es:
     build:
       context: .
-      dockerfile: ./docker/local/es/Dockerfile
+      dockerfile: ./docker/dev/es/Dockerfile
     ports:
       - "127.0.0.1:9200:9200"
     networks:
@@ -15,10 +15,9 @@ services:
   api:
     build:
       context: .
-      dockerfile: ./docker/local/flask/Dockerfile
+      dockerfile: ./docker/dev/flask/Dockerfile
     volumes:
       - .:/app:z
-      - templates:/app/templates
     ports:
       - "127.0.0.1:5001:5001"
     depends_on:
@@ -29,6 +28,3 @@ services:
 networks:
   text-search:
     driver: bridge
-
-volumes:
-  templates:

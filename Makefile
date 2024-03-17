@@ -1,52 +1,77 @@
-.PHONY: help build up down down-volumes rmi-dangling show-logs-es show-logs-api tail-logs-api init-deps
+.PHONY: help build up down down-volumes rmi-dangling show-logs-es show-logs-api tail-logs-api setup-dev pre-commit-auto run-tests
 
 VENV = .venv
-COMPOSE_FILE = local.yml
+COMPOSE_FILE = dev.yml
 
-help: ## Display this help message
+help:
 	@echo "Available targets:"
-	@echo "  build            Build and start the Docker containers"
-	@echo "  up               Start the Docker containers"
-	@echo "  down             Stop the Docker containers"
-	@echo "  down-volumes     Stop the Docker containers and remove volumes"
-	@echo "  rmi-dangling     Remove dangling docker images"
-	@echo "  show-logs-es     Show logs for the Elasticsearch service"
-	@echo "  show-logs-api    Show logs for the Flask API service"
-	@echo "  tail-logs-api    Tail logs for the Flask API service"
-	@echo "  init-deps        Initialize venv and dependencies"
+	@echo "  build              Build and start the Docker containers"
+	@echo "  up                 Start the Docker containers"
+	@echo "  down               Stop the Docker containers"
+	@echo "  down-volumes       Stop the Docker containers and remove volumes"
+	@echo "  rmi-dangling       Remove dangling docker images"
+	@echo "  show-logs-es       Show logs for the Elasticsearch service"
+	@echo "  show-logs-api      Show logs for the Flask API service"
+	@echo "  tail-logs-api      Tail logs for the Flask API service"
+	@echo "  setup-dev          Setup both dev venv and requirements"
+	@echo "  pre-commit-auto    Update pre-commit and run for all files"
+	@echo "  update-reqs-dev    Update requirements for dev"
+	@echo "  run-tests          Run tests and coverage"
+	@echo "  clean-dev          Clean dev env"
 
 
-build: ## Build and start the Docker containers
+build:
 	docker compose -f $(COMPOSE_FILE) up --build -d --remove-orphans
 
-up: ## Start the Docker containers
+up:
 	docker compose -f $(COMPOSE_FILE) up -d
 
-down: ## Stop the Docker containers
+down:
 	docker compose -f $(COMPOSE_FILE) down
 
-down-volumes: ## Stop the Docker containers and remove volumes
+down-volumes:
 	docker compose -f $(COMPOSE_FILE) down -v
 
-rmi-dangling: ## Remove dangling docker images
+rmi-dangling:
 	docker images --filter "dangling=true" -q | xargs docker rmi
 
-show-logs-es: ## Show logs for the es service
+show-logs-es:
 	docker compose -f $(COMPOSE_FILE) logs es
 
-show-logs-api: ## Show logs for the api service
+show-logs-api:
 	docker compose -f $(COMPOSE_FILE) logs api
 
-tail-logs-api: ## Tail logs for the api service
+tail-logs-api:
 	docker compose -f $(COMPOSE_FILE) logs -f api
 
-init-deps: ## Initialize venv and dependencies
-	python -m venv $(VENV) && . $(VENV)/bin/activate
-	python -m pip install pip-tools
-	python -m piptools compile -o ./requirements/local.txt local.in
-	python -m pip check
+flask-regenerate-index:
+	docker compose -f $(COMPOSE_FILE) exec api flask regenerateindex
 
-pre-commit:
-	pre-commit install
+flask-get-mapping:
+	docker compose -f $(COMPOSE_FILE) exec api flask getmapping
+
+reload-wiki-pages:
+	docker compose -f $(COMPOSE_FILE) exec api python load_wiki_pages.py
+
+setup-dev:
+	python -m venv $(VENV) \
+	&& . $(VENV)/bin/activate \
+	&& python -m pip install -qqq -r ./requirements/dev.txt \
+	&& pre-commit install
+
+pre-commit-auto:
 	pre-commit autoupdate
 	pre-commit run --all-files
+
+update-reqs-dev:
+	python -m piptools compile -o ./requirements/dev.txt ./requirements/dev.in
+
+run-tests:
+	python -m coverage erase
+	python -m coverage run -m pytest -vvv
+	python -m coverage report
+	python -m coverage html
+	@echo "Run 'python -m http.server 5000' to view 'htmlcov'"
+
+clean-dev:
+	rm -rf .*/__pycache__ .mypy_cache .pytest_cache .coverage htmlcov .venv

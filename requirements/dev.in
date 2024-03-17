@@ -3,5 +3,8 @@ elasticsearch
 sentence-transformers
 flask
 loguru
-pytest
+pip-tools
 pre-commit
+covdefaults
+coverage
+pytest

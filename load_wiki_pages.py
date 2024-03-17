@@ -6,7 +6,8 @@ import sys
 import wikipedia as wiki
 from loguru import logger
 
-WIKI_PAGES_FILENAME = 'wiki_pages.json'
+from constants import DEFAULT_SEARCH_TERM
+from constants import WIKI_PAGES_FILENAME
 
 
 def get_wiki_pages(term: str, limit: int = 5) -> list[wiki.page]:
@@ -83,6 +84,7 @@ if __name__ == '__main__':
         sys.stderr,
         level='INFO',
     )
-    term = input('Enter a term to search: ')
+    term = input(f'Enter a term to search: [{DEFAULT_SEARCH_TERM}]').strip() \
+        or DEFAULT_SEARCH_TERM
     pages = get_wiki_pages(term)
     download_wiki_pages(pages)

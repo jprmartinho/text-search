@@ -7,8 +7,8 @@ FROM python:${PYTHON_VERSION} as python
 # Build stage for dependencies and build tools
 FROM python as python-build-stage
 
-# Set the build environment (local, production, etc.)
-ARG BUILD_ENVIRONMENT=local
+# Set the build environment (dev, production, etc.)
+ARG BUILD_ENVIRONMENT=dev
 
 # Install necessary dependencies for building Python packages
 RUN apt-get update && apt-get install --no-install-recommends -y build-essential
@@ -24,8 +24,8 @@ RUN pip wheel --wheel-dir /usr/src/app/wheels \
 # Final stage for running the Python application
 FROM python as python-run-stage
 
-# Set the build environment (local, production, etc.)
-ARG BUILD_ENVIRONMENT=local
+# Set the build environment (dev, production, etc.)
+ARG BUILD_ENVIRONMENT=dev
 
 # Set the application's home directory
 ARG APP_HOME=/app
@@ -57,7 +57,7 @@ RUN pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
     && rm -rf /wheels/
 
 # Copy entrypoint script to the image
-COPY ./docker/local/flask/entrypoint /entrypoint
+COPY ./docker/dev/flask/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
 # Set executable permissions for the entrypoint script
 RUN chmod +x /entrypoint
@@ -66,5 +66,6 @@ COPY . ${APP_HOME}
 
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=development
+ENV FLASK_RUN_PORT=5001
 
 ENTRYPOINT [ "/entrypoint" ]

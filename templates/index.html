@@ -41,7 +41,7 @@
   {% for result in results %}
   <p>
     {{ from_ + loop.index }}.
-    <b><a href="{{ url_for('get_document', id=result._id) }}">{{ result._source.title }}</a></b>
+    <b><a href="{{ url_for('get_page_doc', id=result._id) }}">{{ result._source.title }}</a></b>
     <br />
     {{ result._source.content }}
     <br />

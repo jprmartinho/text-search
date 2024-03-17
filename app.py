@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import sys
-
 from flask import Flask
 from flask import render_template
 from flask import request
@@ -11,11 +9,6 @@ from werkzeug.exceptions import InternalServerError
 
 from search import Search
 
-logger.remove()
-logger.add(
-    sys.stderr,
-    level='INFO',
-)
 
 app = Flask(__name__)
 
@@ -45,22 +38,7 @@ def handle_search():
     topk = request.form.get('topk', type=int, default=5)
 
     results = es.search(
-        query={
-            'script_score': {
-                'query': {
-                    'multi_match': {
-                        'query': query,
-                        'fields': ['title', 'summary', 'content'],
-                    },
-                },
-                'script': {
-                    'source': '_score + '
-                    'Math.max('
-                    "0, cosineSimilarity(params.query_vector, 'embedding'))",
-                    'params': {'query_vector': es.get_embedding(query)},
-                },
-            },
-        },
+        query=query,
         size=topk,
         from_=from_,
     )
@@ -75,19 +53,32 @@ def handle_search():
     )
 
 
-@app.get('/document/<id>')
-def get_document(id):
-    document = es.retrieve_document(id)
-    title = document['_source']['title']
-    paragraphs = document['_source']['summary'].split('\n')
-    return render_template('document.html', title=title, paragraphs=paragraphs)
+@app.get('/page_doc/<id>')
+def get_page_doc(id):
+    title, paragraphs = es.get_page_doc_title_summary(
+        es.get_page_doc(id),
+    )
+    return render_template(
+        'page_doc.html',
+        title=title,
+        paragraphs=paragraphs,
+    )
 
 
 @app.cli.command()
-def reindex():
+def regenerateindex():
     """Regenerate the Elasticsearch index."""
-    response = es.reindex()
+    response = es.regenerate_index()
     logger.info(
-        f'Index with {len(response["items"])} documents created '
+        f'Index with {len(response["items"])} page documents created '
         f'in {response["took"]} milliseconds.',
+    )
+
+
+@app.cli.command()
+def getmapping():
+    """Get mappings for both page content and summary indices."""
+    response = es.get_mapping()
+    logger.info(
+        f'Mappings for both page content and summary indices:\n{response}',
     )

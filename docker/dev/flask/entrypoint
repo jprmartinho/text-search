@@ -32,7 +32,11 @@ END
 
 >&2 echo "Elasticsearch is available"
 
-flask reindex
 
-# Run Flask on 127.0.0.1:5001
-exec flask run -h 0.0.0.0 -p 5001
+>&2 echo "Flask '$FLASK_ENV' '$FLASK_APP' will start at port '$FLASK_RUN_PORT'"
+
+flask regenerateindex
+
+flask getmapping
+
+exec flask run -h 0.0.0.0
