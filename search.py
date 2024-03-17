@@ -107,8 +107,7 @@ class Search:
                 },
                 'script': {
                     'params': {'query_vector': self.get_embedding(query)},
-                    'source': '_score + '
-                    f"Math.max(0, cosineSimilarity(params.query_vector, '{EMBEDDING_FLD}'))",
+                    'source': f"_score + Math.max(0, cosineSimilarity(params.query_vector, '{EMBEDDING_FLD}'))",
                 },
             },
         }
